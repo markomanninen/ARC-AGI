@@ -41,6 +41,8 @@ To reproduce the results, you will need:
 - If you want to conduct tests with GPT-4o, you need to modify the `llmClientName` parameter in the `main` function of both `run_tests.py` and `analyze.py` scripts:
   - Change `llmClientName = None` to `llmClientName = "openai"`.
 
+You also need balance (likely a bit more than with the Claude) in the account and API KEY from OpenAI to be set in the `.env` file.
+
 ## Additional Notes
 
 - Verify that you have all environment-specific settings configured correctly, such as Python version and any necessary environment variables.
