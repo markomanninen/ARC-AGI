@@ -135,7 +135,6 @@ def create_and_save_plot(test_input, true_output, predicted_output, file_name):
     
     test_input = np.array(test_input)
     true_output = np.array(true_output)
-    predicted_output = np.array(predicted_output) if predicted_output else None
 
     axes[0].imshow(test_input, aspect='equal', cmap='viridis')
     axes[0].set_title('Test Input')
@@ -153,6 +152,7 @@ def create_and_save_plot(test_input, true_output, predicted_output, file_name):
 
     if predicted_output is not None:
         try:
+            predicted_output = np.array(predicted_output) if predicted_output else None
             axes[2].imshow(predicted_output, aspect='equal', cmap='viridis')
             axes[2].set_title('Predicted Output')
             axes[2].set_xticks(np.arange(-0.5, predicted_output.shape[1], 1))
@@ -215,7 +215,7 @@ def main(llmClientName=None):
 
     evaluation_files = load_evaluation_files(data_dir)
 
-    for file_path in evaluation_files[10:100]:
+    for file_path in evaluation_files[:400]:
         print(f"Processing file: {file_path}")
         with open(file_path, "r") as file:
             data = json.load(file)
@@ -264,5 +264,5 @@ def main(llmClientName=None):
                     create_and_save_plot(test_input, true_output, json_response, img_file_name)
 
 if __name__ == "__main__":
-    llmClientName = "openai"  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4o
+    llmClientName = None  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4o
     main(llmClientName)
