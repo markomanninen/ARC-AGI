@@ -1,0 +1,6 @@
+seaborn
+matplotlib
+numpy
+dotenv
+anthropic
+openai
