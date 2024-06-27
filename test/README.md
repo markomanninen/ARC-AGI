@@ -1,6 +1,6 @@
 # ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison Report
 
-See: [ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison report](https://www.notion.so/mesokosmos/ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison-1d90907ca1784832a0acc315882b1dc2)
+See the following report for the background information: [ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison report](https://www.notion.so/mesokosmos/ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison-1d90907ca1784832a0acc315882b1dc2)
 
 This repository contains the necessary scripts and instructions to compare the performance of Claude 3.5 and GPT-4o in direct prompting approach to public evaluation data in ARC-AGI benchmark.
 
@@ -22,8 +22,8 @@ To reproduce the results, you will need:
 
 ## Running the Tests
 
-1. **Execute the Test Scripts**:
-   - Run the following command to execute all tests. This process will take approximately 30 minutes:
+1. **Execute the Test Script**:
+   - Run the following command to execute all tests for `Claude 3.5 Sonnet`. This process will take approximately 30 minutes:
      ```
      python run_tests.py
      ```
@@ -36,14 +36,19 @@ To reproduce the results, you will need:
      python analyze.py
      ```
 
-## Configuration for GPT-4o
+    - You may also plot all correctly predicted patterns in a single multiplot grid:
+
+      ```
+      python plot_correct.py
+      ```
+
+## Configuration for `GPT-4o`
 
 - If you want to conduct tests with GPT-4o, you need to modify the `llmClientName` parameter in the `main` function of both `run_tests.py` and `analyze.py` scripts:
   - Change `llmClientName = None` to `llmClientName = "openai"`.
 
-You also need balance (likely a bit more than with the Claude) in the account and API KEY from OpenAI to be set in the `.env` file.
+You also need balance (likely a bit more than with the Claude) in the account and API KEY (optionally organization and project keys) from OpenAI to be set in the `.env` file.
 
-## Additional Notes
+***
 
-- Verify that you have all environment-specific settings configured correctly, such as Python version and any necessary environment variables.
-- For detailed visualization of plots, ensure that all dependencies are properly installed and configured.
+I have written an essay about AGI in Finnish that you can read from: [AGI – Yleistekoäly: Totta vai tarua, nyt vai huomenna?](https://mesokosmos.com/2024/06/21/agi-yleistekoaly-totta-vai-tarua-nyt-vai-huomenna/)
