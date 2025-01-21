@@ -1,3 +1,4 @@
 .env
 log*
 img*
+.DS_Store
