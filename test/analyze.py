@@ -159,8 +159,21 @@ def plot_statistics(statistics_true, statistics_false, total_true, total_false):
     false_cmap = LinearSegmentedColormap.from_list('false_cmap', ['white', 'red'])
 
     # Input grid sizes heatmap (True)
-    max_rows = max(max(key[0] for key in statistics_true["input_sizes"].keys()), max(key[0] for key in statistics_false["input_sizes"].keys()))
-    max_cols = max(max(key[1] for key in statistics_true["input_sizes"].keys()), max(key[1] for key in statistics_false["input_sizes"].keys()))
+    true_keys = statistics_true["input_sizes"].keys()
+    false_keys = statistics_false["input_sizes"].keys()
+
+    if true_keys and false_keys:
+        max_rows = max(max(key[0] for key in true_keys), max(key[0] for key in false_keys))
+        max_cols = max(max(key[1] for key in true_keys), max(key[1] for key in false_keys))
+    elif true_keys:
+        max_rows = max(key[0] for key in true_keys)
+        max_cols = max(key[1] for key in true_keys)
+    elif false_keys:
+        max_rows = max(key[0] for key in false_keys)
+        max_cols = max(key[1] for key in false_keys)
+    else:
+        max_rows, max_cols = 0, 0  # or some default value
+        
     input_size_matrix_true = np.zeros((max_rows, max_cols))
     for key, value in statistics_true["input_sizes"].items():
         input_size_matrix_true[key[0]-1, key[1]-1] += value
@@ -256,5 +269,5 @@ def main(llmClientName=""):
     plot_statistics(statistics_true, statistics_false, total_true, total_false)
 
 if __name__ == "__main__":
-    llmClientName = None  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4o
+    llmClientName = "deepseek"  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4o
     main(llmClientName)

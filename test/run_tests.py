@@ -37,12 +37,12 @@ def send_request_to_anthropic(client, userMessage):
             }
         ]
     )
-    print(f"Received response from Anthropic: {response.content[0].text[:50]}...")  # Print first 50 chars for brevity
+    #print(f"Received response from Anthropic: {response.content[0].text[:50]}...")  # Print first 50 chars for brevity
     return response.content[0].text
 
-def send_request_to_openai(client, userMessage):
+def send_request_to_openai(client, userMessage, model="gpt-4o"):
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model=model,
         messages=[
             {
                 "role": "user",
@@ -58,6 +58,9 @@ def send_request_to_openai(client, userMessage):
     message_content = response.choices[0].message.content
     print(f"Received response from OpenAI: {message_content[:50]}...")  # Print first 50 chars for brevity
     return message_content
+
+def send_request_to_deepseek(client, userMessage):
+    return send_request_to_openai(client, userMessage, "deepseek-chat")
 
 def get_depth(nested_list):
     if not isinstance(nested_list, list):
@@ -167,7 +170,7 @@ def create_and_save_plot(test_input, true_output, predicted_output, file_name):
     plt.tight_layout()
     plt.savefig(file_name)
     plt.close()
-    print(f"Plot saved to {file_name}")
+    #print(f"Plot saved to {file_name}")
 
 def create_and_save_examples_plot(train_data, file_name):
     num_examples = len(train_data)
@@ -202,7 +205,7 @@ def main(llmClientName=None):
     img_dir = "./img_"+llmClientName if llmClientName else "./img"
     os.makedirs(log_dir, exist_ok=True)
     os.makedirs(img_dir, exist_ok=True)
-    #print(f"Log directory created at {log_dir}")
+    print(f"Log directory created at {log_dir}")
     
     if llmClientName == "openai":
         llm_client = OpenAI(
@@ -210,18 +213,26 @@ def main(llmClientName=None):
             organization=os.getenv("OPENAI_ORGANIZATION_KEY"), 
             project=os.getenv("OPENAI_PROJECT_KEY")
         )
+    elif llmClientName == "deepseek":
+        llm_client = OpenAI(
+            api_key=os.getenv("DEEPSEEK_API_KEY"),
+            base_url="https://api.deepseek.com"
+        )
     else:
         llm_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
     evaluation_files = load_evaluation_files(data_dir)
 
-    for file_path in evaluation_files[:400]:
-        print(f"Processing file: {file_path}")
+    r = 100
+    for file_path in evaluation_files[r:400]:
+        r += 1
+        print("--------------------------------------------------")
+        print(f"Processing file #{r}: {file_path}")
         with open(file_path, "r") as file:
             data = json.load(file)
             train_data = data["train"]
             test_data = data["test"]
-            #print(f"Loaded train and test data from {file_path}")
+            print(f"Loaded train and test data from {file_path}")
             
             examples_img_file_name = os.path.join(img_dir, f"{file_path.stem}_examples.png")
             if not os.path.exists(examples_img_file_name):
@@ -243,6 +254,8 @@ def main(llmClientName=None):
                     userMessage = format_user_message(train_data, test_input)
                     if llmClientName == "openai":
                         raw_response = send_request_to_openai(llm_client, userMessage)
+                    elif llmClientName == "deepseek":
+                        raw_response = send_request_to_deepseek(llm_client, userMessage)
                     else:
                         raw_response = send_request_to_anthropic(llm_client, userMessage)
 
@@ -264,5 +277,5 @@ def main(llmClientName=None):
                     create_and_save_plot(test_input, true_output, json_response, img_file_name)
 
 if __name__ == "__main__":
-    llmClientName = None  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4o
+    llmClientName = "deepseek"  # None for Anthropic Claude 3.5 Sonnet, "deepseek" for v3, or "openai" for GPT-4o
     main(llmClientName)

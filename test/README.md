@@ -23,10 +23,16 @@ To reproduce the results, you will need:
 ## Running the Tests
 
 1. **Execute the Test Script**:
-   - Run the following command to execute all tests for `Claude 3.5 Sonnet`. This process will take approximately 30 minutes:
+   - Run the following command to execute all tests for `Claude 3.5 Sonnet`. This process will take approximately 30 minutes to run all tests:
      ```
      python run_tests.py
      ```
+
+You may alter runnig only a limited test files by adjusting list index from run_tests.py:226:
+
+    ```
+    evaluation_files -> evaluation_files[:1]
+    ```
 
 ## Analyzing Results
 
@@ -48,6 +54,13 @@ To reproduce the results, you will need:
   - Change `llmClientName = None` to `llmClientName = "openai"`.
 
 You also need balance (likely a bit more than with the Claude) in the account and API KEY (optionally organization and project keys) from OpenAI to be set in the `.env` file.
+
+## Configuration for `DeepSeek v3`
+
+- If you want to conduct tests with GPT-4o, you need to modify the `llmClientName` parameter in the `main` function of both `run_tests.py` and `analyze.py` scripts:
+  - Change `llmClientName = None` to `llmClientName = "deepseek"`.
+
+You also need balance (likely a bit less than with the Claude) in the account and API KEY (optionally organization and project keys) from DeepSeek to be set in the `.env` file.
 
 ***
 

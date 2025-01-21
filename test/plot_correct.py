@@ -124,5 +124,5 @@ def main(llmClientName=""):
     plot_true_results(correct_predictions)
 
 if __name__ == "__main__":
-    llmClientName = None  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4
+    llmClientName = "deepseek"  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4
     main(llmClientName)
