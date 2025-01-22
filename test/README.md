@@ -29,7 +29,6 @@ To reproduce the results, you will need:
      ```
 
 You may alter runnig only a limited test files by adjusting list index from run_tests.py:226:
-
     ```
     evaluation_files -> evaluation_files[:1]
     ```
@@ -42,11 +41,10 @@ You may alter runnig only a limited test files by adjusting list index from run_
      python analyze.py
      ```
 
-    - You may also plot all correctly predicted patterns in a single multiplot grid:
-
-      ```
-      python plot_correct.py
-      ```
+  - You may also plot all correctly predicted patterns in a single multiplot grid:
+    ```
+    python plot_correct.py
+    ```
 
 ## Configuration for `GPT-4o`
 
@@ -57,8 +55,9 @@ You also need balance (likely a bit more than with the Claude) in the account an
 
 ## Configuration for `DeepSeek v3`
 
-- If you want to conduct tests with GPT-4o, you need to modify the `llmClientName` parameter in the `main` function of both `run_tests.py` and `analyze.py` scripts:
+- If you want to conduct tests with DeepSeek v3 or r1, you need to modify the `llmClientName` parameter in the `main` function of both `run_tests.py` and `analyze.py` scripts:
   - Change `llmClientName = None` to `llmClientName = "deepseek"`.
+  - Change model name in `return send_request_to_openai(client, userMessage, "deepseek-chat")` or `"deepseek-reasoner"`
 
 You also need balance (likely a bit less than with the Claude) in the account and API KEY (optionally organization and project keys) from DeepSeek to be set in the `.env` file.
 
