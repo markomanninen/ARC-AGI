@@ -269,5 +269,5 @@ def main(llmClientName=""):
     plot_statistics(statistics_true, statistics_false, total_true, total_false)
 
 if __name__ == "__main__":
-    llmClientName = "deepseek"  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4o
+    llmClientName = 'google'  # None for Anthropic Claude 3.5 Sonnet or "openai" for GPT-4o
     main(llmClientName)

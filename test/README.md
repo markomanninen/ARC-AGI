@@ -1,4 +1,6 @@
-# ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison Report
+# ARC-AGI-Public data test
+
+## Claude 3.5 Sonnet (06/2024, 10/2024), Open AI GPT-4o, DeepSeek v3/r1 comparison
 
 See the following report for the background information: [ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison report](https://www.notion.so/mesokosmos/ARC-AGI-Claude-3-5-Sonnet-and-GPT-4o-comparison-1d90907ca1784832a0acc315882b1dc2)
 
@@ -60,6 +62,12 @@ You also need balance (likely a bit more than with the Claude) in the account an
   - Change model name in `return send_request_to_openai(client, userMessage, "deepseek-chat")` or `"deepseek-reasoner"`
 
 You also need balance (likely a bit less than with the Claude) in the account and API KEY (optionally organization and project keys) from DeepSeek to be set in the `.env` file.
+
+## Configuration for `Gemini`
+
+pip install --upgrade google-cloud-aiplatform
+brew install --cask google-cloud-sdk
+gcloud auth application-default login
 
 ***
 

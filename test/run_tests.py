@@ -6,9 +6,16 @@ from dotenv import load_dotenv
 import anthropic
 import matplotlib.pyplot as plt
 from openai import OpenAI
+from datetime import datetime
+import vertexai
+from vertexai.generative_models import GenerativeModel, SafetySetting
+import time
+import google.api_core.exceptions
 
 # Load environment variables from .env file
 load_dotenv()
+
+safety_settings = None
 
 def load_evaluation_files(data_dir):
     #print(f"Loading evaluation files from {data_dir}")
@@ -24,12 +31,61 @@ def format_user_message(train_data, test_input):
     #print(f"Formatted user message: {user_message[:100]}...")  # Print first 100 chars for brevity
     return user_message + "\n\nGet test output as JSON array. Nothing else, no intro, no summary, just JSON text code block."
 
-def send_request_to_anthropic(client, userMessage):
+def send_request_to_google_(client, userMessage, model="gemini-1.5-pro-002", temperature=0):
+    #print(f"Sending request to LLM with message: {userMessage[:100]}...")  # Print first 100 chars for brevity
+
+    responses = client.generate_content(
+        [userMessage],
+        generation_config={
+            "max_output_tokens": 8192,
+            "temperature": temperature,
+            "top_p": 0.95,
+        },
+        safety_settings=safety_settings,
+        stream=True,
+    )
+
+    content = ''.join([response.text for response in responses])
+    print(f"Received response: {content[:50]}...")  # Print first 50 chars for brevity
+    return content
+
+def send_request_to_google(client, userMessage, model="gemini-1.5-pro-002", temperature=0):
+    max_retries = 6
+    backoff_factor = 2
+    initial_delay = 1  # in seconds
+
+    for attempt in range(max_retries):
+        try:
+            responses = client.generate_content(
+                [userMessage],
+                generation_config={
+                    "max_output_tokens": 8192,
+                    "temperature": temperature,
+                    "top_p": 0.95,
+                },
+                safety_settings=safety_settings,
+                stream=True,
+            )
+
+            content = ''.join([response.text for response in responses])
+            print(f"Received response: {content[:50]}...")  # Print first 50 chars for brevity
+            return content
+
+        except google.api_core.exceptions.ResourceExhausted as e:
+            if attempt < max_retries - 1:
+                delay = initial_delay * (backoff_factor ** attempt)
+                print(f"Quota exceeded. Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                print("Max retries reached. Quota exceeded.")
+                raise
+
+def send_request_to_anthropic(client, userMessage, model="claude-3-5-sonnet-20240620", temperature=0):
     #print(f"Sending request to LLM with message: {userMessage[:100]}...")  # Print first 100 chars for brevity
     response = client.messages.create(
-        model="claude-3-5-sonnet-20240620",
+        model=model,
         max_tokens=4096,
-        temperature=0,
+        temperature=temperature,
         messages=[
             {
                 "role": "user",
@@ -37,10 +93,10 @@ def send_request_to_anthropic(client, userMessage):
             }
         ]
     )
-    #print(f"Received response from Anthropic: {response.content[0].text[:50]}...")  # Print first 50 chars for brevity
+    print(f"Received response: {response.content[0].text[:50]}...")  # Print first 50 chars for brevity
     return response.content[0].text
 
-def send_request_to_openai(client, userMessage, model="gpt-4o"):
+def send_request_to_openai(client, userMessage, model="gpt-4o", temperature=0):
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -49,18 +105,25 @@ def send_request_to_openai(client, userMessage, model="gpt-4o"):
                 "content": userMessage
             }
         ],
-        temperature=0,
+        temperature=temperature,
         max_tokens=4095,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0
     )
     message_content = response.choices[0].message.content
-    print(f"Received response from OpenAI: {message_content[:50]}...")  # Print first 50 chars for brevity
+    print(f"Received response: {message_content[:50]}...")  # Print first 50 chars for brevity
+    if model == "deepseek-reasoner":
+        #print(response.choices[0].message.reasoning_content)
+        reasoning_content = response.choices[0].message.reasoning_content
+        log_file="deepseek_reasoning_log.txt"
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(log_file, "a") as file:
+            file.write(f"[{timestamp}] {reasoning_content}\n")
     return message_content
 
-def send_request_to_deepseek(client, userMessage):
-    return send_request_to_openai(client, userMessage, "deepseek-chat")
+def send_request_to_deepseek(client, userMessage, model="deepseek-reasoner", temperature=0):
+    return send_request_to_openai(client, userMessage, model, temperature)
 
 def get_depth(nested_list):
     if not isinstance(nested_list, list):
@@ -218,12 +281,35 @@ def main(llmClientName=None):
             api_key=os.getenv("DEEPSEEK_API_KEY"),
             base_url="https://api.deepseek.com"
         )
+    elif llmClientName == "google":
+        vertexai.init(project="gen-lang-client-0064249622", location="us-central1")
+        llm_client = GenerativeModel(
+            "gemini-1.5-pro-002",
+        )
+        safety_settings = [
+            SafetySetting(
+                category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                threshold=SafetySetting.HarmBlockThreshold.OFF
+            ),
+            SafetySetting(
+                category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold=SafetySetting.HarmBlockThreshold.OFF
+            ),
+            SafetySetting(
+                category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                threshold=SafetySetting.HarmBlockThreshold.OFF
+            ),
+            SafetySetting(
+                category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                threshold=SafetySetting.HarmBlockThreshold.OFF
+            ),
+        ]
     else:
         llm_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
     evaluation_files = load_evaluation_files(data_dir)
 
-    r = 100
+    r = 250
     for file_path in evaluation_files[r:400]:
         r += 1
         print("--------------------------------------------------")
@@ -253,11 +339,19 @@ def main(llmClientName=None):
                     
                     userMessage = format_user_message(train_data, test_input)
                     if llmClientName == "openai":
-                        raw_response = send_request_to_openai(llm_client, userMessage)
+                        # gpt-4o
+                        raw_response = send_request_to_openai(llm_client, userMessage, "gpt-4o", 0.0)
                     elif llmClientName == "deepseek":
-                        raw_response = send_request_to_deepseek(llm_client, userMessage)
+                        # deepseek-reasoner
+                        # 22.10.2025: temperature 1.0 which is supposed to be for data analysis
+                        # gives much worae answers than 0.0, dropping the success rate to 6%
+                        raw_response = send_request_to_deepseek(llm_client, userMessage, "deepseek-chat", 0.0)
+                    elif llmClientName == "google":
+                        # gemini-1.5-pro-002, gemini-2.0-flash-exp
+                        raw_response = send_request_to_google(llm_client, userMessage, "gemini-1.5-pro-002", 0.0)
                     else:
-                        raw_response = send_request_to_anthropic(llm_client, userMessage)
+                        # claude-3-5-sonnet-20240620"
+                        raw_response = send_request_to_anthropic(llm_client, userMessage, "claude-3-5-sonnet-20241022", 0.0)
 
                     error_flag = False
                     try:
@@ -277,5 +371,5 @@ def main(llmClientName=None):
                     create_and_save_plot(test_input, true_output, json_response, img_file_name)
 
 if __name__ == "__main__":
-    llmClientName = "deepseek"  # None for Anthropic Claude 3.5 Sonnet, "deepseek" for v3, or "openai" for GPT-4o
+    llmClientName = 'google'  # None for Anthropic Claude 3.5 Sonnet, "deepseek" for v3, or "openai" for GPT-4o
     main(llmClientName)

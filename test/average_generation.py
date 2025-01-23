@@ -50,10 +50,10 @@ def format_time(seconds):
     seconds = int(seconds % 60)
     return f"{hours}h {minutes}m {seconds}s"
 
-log_dir = 'log_deepseek'
+log_dir = 'log_google'
 
 timestamps = get_creation_times(log_dir)
-average_interval, total_time = calculate_intervals(timestamps, max_allowed_gap=120)
+average_interval, total_time = calculate_intervals(timestamps, max_allowed_gap=80)
 
 if average_interval is not None:
     print(f"Average interval (seconds): {average_interval:.2f}")

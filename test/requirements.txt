@@ -4,3 +4,4 @@ numpy
 #dotenv
 anthropic
 openai
+google-cloud-aiplatform
